@@ -21,7 +21,7 @@
     	<div class="row">
     	<div class="col-md-12">
     	<!--autoplay 지우고 controls 추가-->
-		<video id = 'first' autoplay loop width="100%" height="1500px">
+		<video id = 'first' loop width="100%" height="1500px">
   			{% load static %} <source src="{% static 'img/leg.mp4'%}" type="video/mp4">
 		</video>
 		</div>
@@ -48,6 +48,12 @@ var interval = setInterval(function(){
 function start () {
 	var video = document.getElementById("first");
 	video.play();
+	$j.ajax({
+		//ajax request, so that website doesn't reload
+		url:"open",//url it calls from urls.py
+		type:"get",//you want to get some data
+		},
+	);
 }
 </script>
 

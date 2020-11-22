@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+import open
 def one(request):
 	if request.is_ajax():
 		f = open("demofile.txt", "r") #r = reading
@@ -12,7 +13,11 @@ def one(request):
 
 	else:
 		return render(request, 'blog/one.html')
-	
+
+def open(request):
+	open.function()
+	return 
+
 
 
 
