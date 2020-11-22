@@ -6,5 +6,5 @@ urlpatterns = [
     path('about/', views.about, name='blog-about'),
     path('one/', views.one, name='blog-one'),
     path('abc/', views.abc, name='blog-abc'),
-    path('one/open/', views.open, name='blog-open')
+    path('one/open/', views.openpose, name='blog-open')
 ]

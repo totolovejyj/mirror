@@ -1,26 +1,28 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-import open
+import sys
+sys.path.append('../')
+import openvino_demo_224
+
 def one(request):
 	if request.is_ajax():
-		f = open("demofile.txt", "r") #r = reading
+		f = open('demofile.txt') #r = reading
 		counter = f.read()
 		f.close 
-		f = open("score.txt", "r")
-		score = f.read()
+		#f = open("score.txt", "r")
+		#score = f.read()
 		f.close
-		return JsonResponse({'count':counter, 'score':score})
+		#return JsonResponse({'count':counter, 'score':score})
+		return JsonResponse({'count':counter})
 
 	else:
 		return render(request, 'blog/one.html')
 
-def open(request):
-	open.function()
+def openpose(request):
+	openvino_demo_224.main()
 	return 
 
-
-
-
+	
 def home(request):
     
     return render(request, 'blog/home.html')
