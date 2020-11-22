@@ -1,0 +1,45 @@
+{% extends "blog/base.html" %}
+{% block content %}
+    <p class="text-center" style="font-size: 80px; color: white;" >필요한 운동을 선택해 주세요</p>
+    <div class="container">
+    	<br><br>
+    	<div class="row">
+        <div class="col-md-12">
+        {% load static %} <img src="{% static 'img/body.png' %}" class="img-responsive"  width="100%" height="1500px"> 
+        </div>
+
+        {% load static %} <a href="{% url 'blog-one' %}"><button type="button" class="btn btn-primary" style="font-size: 75px; position:absolute;top: 1060px ;right:100px;" >다리</button> </a>
+        {% load static %} <a href="{% url 'blog-one' %}"><button type="button" class="btn btn-primary" style="font-size: 75px; position:absolute;top: 630px ;right:200px;" >팔 </button> </a>
+        {% load static %} <a href="{% url 'blog-one' %}"><button type="button" class="btn btn-primary" style="font-size: 75px; position:absolute;top: 740px ;right:870px;" >코어 </button> </a>
+        {% load static %} <a href="{% url 'blog-one' %}"><button type="button" class="btn btn-primary" style="font-size: 65px; position:absolute;top: 270px ;right:710px;" >밸런스 인지</button> </a>
+    	<!--<div class="col-md-6">
+		{% load static %} <a href="{% url 'blog-one' %}">
+		<img src="{% static 'img/leg.jpg' %}" class="img-responsive" width="100%" height="500px"> 
+		</a>
+    	</div>
+    	<div class="col-md-6">
+    		{% load static %} <img src="{% static 'img/arm.jpg' %}" class="img-responsive" width="100%" height="500px" >
+    	</div>
+    	</div>
+    	<br><br>
+    	<div class="row">
+    	<div class="col-md-6">
+    		{% load static %} <img src="{% static 'img/core.jpg' %}" class="img-responsive" width="100%" height="500px"> 
+    	</div>
+		<div class="col-md-6">
+    		{% load static %} <img src="{% static 'img/balance.jpg' %}" class="img-responsive" width="100%" height="500px"> 
+    	</div>
+    	</div>
+    	<br><br>
+    	<div class="row" >
+    		<div class="col-md-3"></div>
+    		<div class="col-md-6">
+    		{% load static %} <img src="{% static 'img/static.jpg' %}" class="img-responsive" width="100%" height="500px"> 
+    	</div>
+    	</div>
+    -->
+
+
+    </div>
+    
+{% endblock content %}
