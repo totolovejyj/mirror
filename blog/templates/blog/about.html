@@ -28,15 +28,40 @@
 	
 	<br>
 <div class="row">
-	<div class="col-md-4">
+
+		<div class="col-md-4">
 		
-	<div class="pie-chart pie-chart1"><span class="center">80%</span></div></div>
-	<div class="col-md-4">
+			<div class="pie-chart pie-chart1">
+			<span class="center">
+		<!--<div id="a" style="font-size: 50px; color: black;"></div>-->80%
+			</span>
+			</div>
+		</div>
+	
+
+		<div class="col-md-4">
 		
-	<div class="pie-chart pie-chart2"><span class="center">50%</span></div></div>
-	<div class="col-md-4">
-		
-	<div class="pie-chart pie-chart3"><span class="center">30%</span></div></div>
+			<div class="pie-chart pie-chart2">
+			<span class="center">
+			<!--<div id="b"></div>-->
+			3%
+			</span>
+		</div>
+		</div>
+
+
+		<div class="col-md-4">
+
+			<div class="pie-chart pie-chart3">
+			<span class="center">
+				<!--<div id="c"></div>-->
+			4%
+			</span>
+			</div>
+		</div>
+
+
+
 </div>
 <br>
 <br>
@@ -51,14 +76,16 @@
 	<div class="row">
 		<div class="col-md-12">
 			<p class="text-center" style="font-size: 50px; color: white;">
-			1. 최대 들어올린 다리의 각도는 20도 입니다.
+			1. 최대 들어올린 다리의 각도는 <div id="d" style="font-size: 50px; color: white;"></div>도 입니다.
 			</p>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-12">
 			<p class="text-center" style="font-size: 50px; color: white;">
-			2. 완성도는 우수하지만, 운동시간이 아쉽습니다. <br>다음번에는 조금 더 시도해볼까요?
+			2. <div id="e" style="font-size: 50px; color: white;"></div>는 우수하지만, 
+			<div id="f" style="font-size: 50px; color: white;"></div>
+			이 아쉽습니다. <br>다음번에는 조금 더 시도해볼까요?
 			</p>
 		</div>
 	</div>
@@ -67,7 +94,7 @@
 
 	<div class="row">
 		<div class="col-md-6">
-			<p class="text-center" style="font-size: 50px; color: white;"> 과거의 나
+			<p class="text-center" style="font-size: 50px; color: white;"> 오늘의 워스트
 		</div>
 		<div class="col-md-6">
 			<p class="text-center" style="font-size: 50px; color: white;"> 오늘의 베스트
@@ -85,5 +112,23 @@
 </div>
 {% load static %} <link scr="{% static 'blog/main.css' %}">
 <script src="{% static 'main.js' %}"></script> 
+<script>
+var $j = jQuery.noConflict();
+var interval = setInterval(function(){
+	$j.ajax({
+		url:"",
+		type:"get",
+		success: function(response){
+			$("#a").text(response.a);
+			$("#b").text(response.b);
+			$("#c").text(response.c);
+			$("#d").text(response.d);
+			$("#e").text(response.e);
+			$("#f").text(response.f);
+			
+
+		},
+	});
+},1000);</script>
 
 {% endblock content %}
