@@ -103,6 +103,9 @@ span.center{
    transform: translate(-50%, -50%);
 }
 
+.chart {float: left; width: 33.33%; height: 230px; text-align: center;}
+.chart span.title{position: relative; display: block; width: 100%; text-align: center; top: 110px;}
+
 
 
 

@@ -2,6 +2,7 @@ import tensorflow as tf
 import cv2
 import time
 import os
+import sys
 from picamera import PiCamera
 import argparse
 import math
@@ -9,9 +10,10 @@ from posenet import *
 from picamera.array import PiRGBArray
 from posenet.utils import _process_input
 from easydict import EasyDict
-
+from liftoneleg import *
+from metric import test_per_frame
 # from playsound import playsound
-#from posenet.utils import read_cap
+# from posenet.utils import read_cap
 from openvino.inference_engine import IENetwork, IECore
 
 #def parse_args():
@@ -42,6 +44,7 @@ print(args)
 camera = PiCamera()
 camera.resolution = (640,480)
 #camera.framerate =32
+
 
 def counting_rightarm(keypoint_coords, old_raiseup):
     Count = False
@@ -79,29 +82,71 @@ def checking_rightarm(keypoint_coords, old_raiseup, old_rightarm):
             raiseup = False
             max_rightarm = 1000
     return Check, raiseup, max_rightarm
+    
+def posenet2openpose(keypoints):
+    
+    keypoints = keypoints[0] # max score keypoint
+    keypoints = np.flip(keypoints, 1) #(y,x) -> (x,y)
+    # print("========after flip========")
+    # print(keypoints)
+    
+    # get keypoint for neck
+    right_shoulder = keypoints[6]
+    left_shoulder = keypoints[5]
+    neck_x = right_shoulder[0] + (left_shoulder[0] - right_shoulder[0]) / 2
+    neck_y = min(left_shoulder[1], right_shoulder[1])
+    neck_top = np.array([0, 0])
+    neck_bottom = np.array([neck_x, neck_y])
+    keypoints = np.insert(keypoints, 0, neck_top, axis=0)
+    keypoints = np.insert(keypoints, 1, neck_bottom, axis=0)
+    #print("========after insert neck========")
+    #print(keypoints)
+    
+    # consist keypoints in openpose order
+    openpose_order = [0,1,6,8,10,5,7,9,12,14,16,11,13,15]
+    res_keypoints = [keypoints[i] for i in openpose_order]
+    res_keypoints = np.array(res_keypoints)
+    #print("========after reorder========")
+    #print(res_keypoints)
+    return res_keypoints
+    
 
 def main():
     
-    ankle_height = 0
-    counting = 0
-    old_raiseup = False
-    okay = False
-    raiseup = False
-    old_minwrist = 720
+    #ankle_height = 0
+    #counting = 0
+    #old_raiseup = False
+    #okay = False
+    #raiseup = False
+    #old_minwrist = 720
+    
+    #Global varaible
+    LEG_LABEL = np.load('./test.npy')
+    
+    #Initialize analzing parameter
+    previous_pose_kpts = []
+    result = [-1, -1, -1, -1, -1]
+    count = 0
+    start_frame, end_frame = 1000000, -1
+    max_angle = 0
+    min_angle = 90
+    completed_half = False
     
     model_xml = args.model
     model_bin = os.path.splitext(model_xml)[0] + '.bin'
     
+            
     with tf.Session() as sess:
         #model_cfg, model_outputs = posenet.load_model(101, sess)
         #output_stride = model_cfg['output_stride']
         output_stride = 16
         checkraiseup, rightarm = 0, 720        
         rawCapture = PiRGBArray(camera, size = (640,480))
-
-        #start = time.time()
+        
+        start = time.time()
         frame_count = 0
         framenum =0
+        score_list = []
         ie = IECore()
         if args.cpu_extension and 'CPU' in args.device:
             ie.add_extension(args.cpu_extension, "CPU")
@@ -129,18 +174,9 @@ def main():
             input_image, display_img, output_scale = _process_input(
                 input_image,scale_factor=args.scale_factor, output_stride=output_stride)
             
-            #input_image, display_img, output_scale = read_cap(
-            #    cap, scale_factor=args.scale_factor, output_stride=output_stride)
-            #print(input_image.shape)
-            #input_image = np.swapaxes(input_image, 0, 1)
-            #input_image = np.swapaxes(input_image, 0, 2)
             input_image = np.expand_dims(input_image, 0)
             input_image = np.transpose(input_image, (0, 3, 1, 2))
             #print(input_image.shape)
-            
-            #frame, display_img, output_scale = _process_input(input_image)
-            #frame = cv2.resize(input_image, dsize=(w, h))
-            #frame = input_image.reshape((n, c, h, w))
             
             res = exec_net.infer({'image': input_image})
             heatmaps_result = res['heatmap']
@@ -161,31 +197,80 @@ def main():
                 displacement_bwd_result.squeeze(axis=0),
                 output_stride=output_stride,
                 max_pose_detections=10,
-                min_pose_score=0.001)
+                min_pose_score=0.1)
             
-            #(keypoint_coords)
-            keypoint_coords *= output_scale        
-                        
-            Count, raiseup = counting_rightarm(keypoint_coords, raiseup)
+            keypoint_coords *= output_scale   
+            
+            openpose_keypoint_coords = posenet2openpose(keypoint_coords)
 
-            rightwrist = keypoint_coords[0, :, :][10][0]
-            minwrist = min(rightwrist, old_minwrist)
-            shoulder_min = keypoint_coords[0, :, :][6][0] + 30
-            shoulder_max = keypoint_coords[0, :, :][6][0] + 15
-            hip_min =  keypoint_coords[0, :, :][12][0] - 15
-            hip_max =  keypoint_coords[0, :, :][12][0] + 15
-        
+            #Analyze posture
+            previous_pose_kpts.append(openpose_keypoint_coords)
+            #print(previous_pose_kpts[1])
+            liftoneleg = LiftOneLeg(previous_pose_kpts, framenum)
+            angle, leg_status = liftoneleg.check_leg_up_down()
             
-            if Count:
-                counting +=1
-                print("================================")
-                print(counting)
-                minwrist = 720
-                f = open('demofile.txt', 'w')
-                f.write(str(counting))
+            if angle > max_angle:
+                max_angle = angle
+                max_frame = display_img
+                    
+            #Update status and count
+            leg_status, completed_half, count_update, start_frame_update, end_frame_update= \
+                        liftoneleg.count_repetition(angle, leg_status, completed_half, count, framenum, start_frame, end_frame)
+            if (count_update == count +1):
+                print("count : %d" %count_update)
+                #score = test_per_frame(previous_pose_kpts[start_frame:], LEG_LABEL)
+                #print("**************************")
+                #print(score)
+                #score_list.append(score)
+                #f= open('score.txt', 'w')
+                #f.write(str(int(score)))
+                #f.close()
+                #previous_pose_kpts = []
+            
+            count, start_frame, end_frame = count_update, start_frame_update, end_frame_update 
+            
+            f = open('demofile.txt', 'w')
+            f.write(str(count))
+            f.close()
+            
+            # write for feedback!!
+            if count == 2:
+                exercise_time = time.time() - start
+                # write max angle
+                f = open('max_angle.txt', 'w')
+                f.write(str(max_angle))
+                f.close() 
+                # write exercise time
+                f= open('time.txt', 'w')
+                f.write(str(exercise_time))
                 f.close()
+                # write score 
+                #f= open('final_score.txt')
+                #f.write(str(score_list.sum()/count))
+                #f.close()
+                #sys.exit(0)
+                return 0
+                
+                        
+            #Count, raiseup = counting_rightarm(keypoint_coords, raiseup)
+
+            #rightwrist = keypoint_coords[0, :, :][10][0]
+            #minwrist = min(rightwrist, old_minwrist)
+            #shoulder_min = keypoint_coords[0, :, :][6][0] + 30
+            #shoulder_max = keypoint_coords[0, :, :][6][0] + 15
+            #hip_min =  keypoint_coords[0, :, :][12][0] - 15
+            #hip_max =  keypoint_coords[0, :, :][12][0] + 15
+        
+            #if Count:
+            #    counting +=1
+            #    print("================================")
+            #    print(counting)
+            #    minwrist = 720
+            #    f = open('demofile.txt', 'w')
+            #    f.write(str(counting))
+            #    f.close()
                 #time.sleep(3)
-            old_minwrist = minwrist
+            #old_minwrist = minwrist
 
             overlay_image = posenet.draw_skel_and_kp(
                 display_img, pose_scores, keypoint_scores, keypoint_coords,

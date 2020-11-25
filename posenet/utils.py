@@ -12,12 +12,12 @@ def valid_resolution(width, height, output_stride=16):
 
 def _process_input(source_img, scale_factor=1.0, output_stride=16):
     
-    print("source_img: ", source_img.shape[0], source_img.shape[1])
+    #print("source_img: ", source_img.shape[0], source_img.shape[1])
     target_width, target_height = valid_resolution(
         source_img.shape[1] * scale_factor, source_img.shape[0] * scale_factor, output_stride=output_stride)
     scale = np.array([source_img.shape[0] / target_height, source_img.shape[1] / target_width])
     input_img = cv2.resize(source_img, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
-    print("process: ", input_img.shape)
+    #print("process: ", input_img.shape)
     input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB).astype(np.float16)
     input_img = input_img * (2.0 / 255.0) - 1.0
     return input_img, source_img, scale
