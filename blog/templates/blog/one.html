@@ -1,8 +1,15 @@
 {% extends "blog/base.html" %}
 {% block content %}
 <div class="container-fluid">
- 
+	
+
+
+{% load static %} <a href="{% url 'blog-about' %}"><button type="button" class="btn btn-primary" style="font-size:30px; position:absolute;top: 200px ;right:800px;" >멈춤</button> </a>
+
+
+
 <button onclick = "start()" type="button" class="btn btn-primary" style="font-size: 30px; position:absolute;top: 200px ;right:50px;" >시작</button>
+
 
 
 	<div class="row"> 
@@ -53,10 +60,17 @@ var interval = setInterval(function(){
 			$("#counter").text(response.count);
 			$("#score").text(response.score);
 			//$: look for element, 'counter' and set text to variable response.count (anser of request), #=id
-
+			//if (response.end == 100){
+			//	clearInterval(interval);
+			//}
 		},
 	});
+	if ($("#counter").innerHTML==15)
+	{window.location.href = 'http://localhost:8000/about/';}
+	
 },1000); //every 1000ms (inside setInterval)
+
+  
 function start () {
 	var video = document.getElementById("first");
 	video.play();

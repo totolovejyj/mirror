@@ -121,7 +121,7 @@ def main():
     #old_minwrist = 720
     
     #Global varaible
-    LEG_LABEL = np.load('./test.npy')
+    LEG_LABEL = np.load('./groundtruth.npy')
     
     #Initialize analzing parameter
     previous_pose_kpts = []
@@ -131,6 +131,7 @@ def main():
     max_angle = 0
     min_angle = 90
     completed_half = False
+    total_len_frame = 0
     
     model_xml = args.model
     model_bin = os.path.splitext(model_xml)[0] + '.bin'
@@ -173,7 +174,8 @@ def main():
             #    exit()
             input_image, display_img, output_scale = _process_input(
                 input_image,scale_factor=args.scale_factor, output_stride=output_stride)
-            
+            print("display: ", display_img.shape)
+            print("preprocess : ", input_image.shape)
             input_image = np.expand_dims(input_image, 0)
             input_image = np.transpose(input_image, (0, 3, 1, 2))
             #print(input_image.shape)
@@ -201,31 +203,38 @@ def main():
             
             keypoint_coords *= output_scale   
             
-            openpose_keypoint_coords = posenet2openpose(keypoint_coords)
-
+            # convert posenet keypoints 2 openpose format
+            openpose_keypoints = posenet2openpose(keypoint_coords)
+            
+            #Select joints
+            select_keypoints = np.concatenate((openpose_keypoints[2],openpose_keypoints[5],openpose_keypoints[8],
+                                        openpose_keypoints[10],openpose_keypoints[11],openpose_keypoints[13])).reshape(-1, 2)
+                                     
             #Analyze posture
-            previous_pose_kpts.append(openpose_keypoint_coords)
-            #print(previous_pose_kpts[1])
-            liftoneleg = LiftOneLeg(previous_pose_kpts, framenum)
+            previous_pose_kpts.append(select_keypoints)
+            liftoneleg = LiftOneLeg(previous_pose_kpts)
             angle, leg_status = liftoneleg.check_leg_up_down()
+            print(framenum, "====> ", angle)
             
             if angle > max_angle:
                 max_angle = angle
-                max_frame = display_img
+                #max_frame = cv2.imwrite("max_angle_frame.png")
                     
             #Update status and count
             leg_status, completed_half, count_update, start_frame_update, end_frame_update= \
                         liftoneleg.count_repetition(angle, leg_status, completed_half, count, framenum, start_frame, end_frame)
             if (count_update == count +1):
                 print("count : %d" %count_update)
-                #score = test_per_frame(previous_pose_kpts[start_frame:], LEG_LABEL)
-                #print("**************************")
-                #print(score)
-                #score_list.append(score)
-                #f= open('score.txt', 'w')
-                #f.write(str(int(score)))
-                #f.close()
-                #previous_pose_kpts = []
+                score = test_per_frame(previous_pose_kpts[start_frame-total_len_frame:end_frame-total_len_frame], LEG_LABEL)
+                print("**************************")
+                print(start_frame, end_frame)
+                print(score)
+                score_list.append(score)
+                f= open('score.txt', 'w')
+                f.write(str(int(score)))
+                f.close()
+                total_len_frame += len(previous_pose_kpts)
+                previous_pose_kpts = []
             
             count, start_frame, end_frame = count_update, start_frame_update, end_frame_update 
             
