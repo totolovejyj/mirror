@@ -1,10 +1,6 @@
-import time
-counter = 0 
-while True :
-	counter = counter + 1
-	
-	
-	f = open('demofile.txt', 'w')
-	f.write(str(counter))
+
+def findThreshold():
+
+	f = open('test.txt', 'w')
+	f.write(str(10))
 	f.close()
-	time.sleep(3)

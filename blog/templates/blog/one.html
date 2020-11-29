@@ -1,15 +1,6 @@
 {% extends "blog/base.html" %}
 {% block content %}
 <div class="container-fluid">
-	
-
-
-{% load static %} <a href="{% url 'blog-about' %}"><button type="button" class="btn btn-primary" style="font-size:30px; position:absolute;top: 200px ;right:800px;" >멈춤</button> </a>
-
-
-
-<button onclick = "start()" type="button" class="btn btn-primary" style="font-size: 30px; position:absolute;top: 200px ;right:50px;" >시작</button>
-
 
 
 	<div class="row"> 
@@ -26,12 +17,21 @@
 		</div>
 	</div>
 	<div class="row">
-		<div id="counter" style="font-size: 70px; color: white; position:absolute;top: 70px ;right:896px; "></div></div>
+		<div id="counter" style="font-size: 70px; color: white; position:absolute;top: 70px ;right:900px; "></div>
 		
-		<div id="score" style="font-size: 50px; color: white; position:absolute;top: 70px ;right:106px"></div></div>
+		<div id="score" style="font-size: 70px; color: white; position:absolute;top: 70px ;right:106px"></div>
 	</div>
 </div>
- 
+	
+{% load static %} <a href="{% url 'blog-about' %}"><button type="button" class="btn btn-primary" style="font-size:30px; position:absolute;top: 200px ;right:70px;" >멈춤</button> </a>
+
+<button onclick = "start()" type="button" class="btn btn-primary" style="font-size: 30px; position:absolute;top: 200px ;right:500px;" >테스트</button>
+
+<button onclick = "test()" type="button" class="btn btn-primary" style="font-size: 30px; position:absolute;top: 200px ;right:900px;" >시작</button>
+
+<br>
+<br>
+<br>
 <br>
 <br>
 <br>
@@ -58,15 +58,16 @@ var interval = setInterval(function(){
 		type:"get",//you want to get some data
 		success: function(response){//if request is successful, do this funtion, function 에게 response를 준다
 			$("#counter").text(response.count);
+			var a = response.count;
 			$("#score").text(response.score);
 			//$: look for element, 'counter' and set text to variable response.count (anser of request), #=id
-			//if (response.end == 100){
-			//	clearInterval(interval);
-			//}
+			if (response.count == 100){
+				clearInterval(interval);
+			}
 		},
 	});
-	if ($("#counter").innerHTML==15)
-	{window.location.href = 'http://localhost:8000/about/';}
+	//if ($("#counter").innerHTML==15)
+	//{window.location.href = 'http://localhost:8000/about/';}
 	
 },1000); //every 1000ms (inside setInterval)
 
@@ -81,6 +82,19 @@ function start () {
 		},
 	);
 }
+
+function test () {
+	var video = document.getElementById("first");
+	video.play();
+	$j.ajax({
+		//ajax request, so that website doesn't reload
+		url:"test",//url it calls from urls.py
+		type:"get",//you want to get some data
+		},
+	);
+}
+
+
 </script>
 
 <script>

@@ -54,7 +54,7 @@ class LiftOneLeg():
     def check_leg_up_down(self):
 
         leg_up, leg_down, leg_stop = False, False, False
-        avg_per_frame = 3
+        avg_per_frame = 1
         angle = -1
         
         if (self.num_frames > avg_per_frame*3):

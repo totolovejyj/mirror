@@ -9,63 +9,51 @@
 	</div>
 	<br>
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-md-6">
 			<p class="text-center" style="font-size: 50px; color: white;">
 				완성도
 			</p>
 		</div>
-		<div class="col-md-4">
+		<div class="col-md-6">
 			<p class="text-center" style="font-size: 50px; color: white;">
 				평균 점수
 			</p>
 		</div>
-		<div class="col-md-4">
-			<p class="text-center" style="font-size: 50px; color: white;">
-				운동 시간
-			</p>
-		</div>
+		
 	</div>
 	
 	<br>
 
-<<div class="row">
-
+	<div class="row">
+	<div class="col-md-1"></div>
 		<div class="col-md-4">
 		
 			<div class="pie-chart pie-chart1">
 			<span class="center">
-		<!--div id="a" style="font-size: 50px; color: black;"></div-->%
+				<div id="count" style="font-size: 50px; color: black; "></div>%
 			</span>
 			</div>
 		</div>
-	
+	<div class="col-md-2"></div>
 
-		<div class="col-md-4">
+		<div class="col-md-5">
 		
 			<div class="pie-chart pie-chart2">
 			<span class="center">
-			<!--<div id="b"></div>-->
-			3%
-			</span>
-		</div>
-		</div>
-
-
-		<div class="col-md-4">
-
-			<div class="pie-chart pie-chart3">
-			<span class="center">
-				<!--<div id="c"></div>-->
-			4%
+				<div id="final_score"></div>%
 			</span>
 			</div>
 		</div>
 
 
+			
+		</div>
 
-</div> 
-<br>
-<br>
+
+
+	</div> 
+	<br>
+	<br>
 
 	<div class="row">
 		<div class="col-md-12">
@@ -77,25 +65,20 @@
 	<div class="row">
 		<div class="col-md-12">
 			<p class="text-center" style="font-size: 50px; color: white;">
-			1. 최대 들어올린 다리의 각도는  도 입니다.
-			<!--div class="row">
-			<div id="max_angle" style="font-size: 50px; color: white; position:absolute;top: 70px ;right:896px;" >
-				</div>
-				</div-->
+			1. 최대 들어올린 다리의 각도는 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;도 입니다.
+			<div id="max_angle" style="font-size: 50px; color: white; position:absolute;top: 2px ;right:255px;" >
 			</p>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-12">
 			<p class="text-center" style="font-size: 50px; color: white;">
-			2. <!--div id="e" style="font-size: 50px; color: white;"></div-->는 우수하지만, 
-			<!--div id="f" style="font-size: 50px; color: white;"></div-->
-			이 아쉽습니다. <br>다음번에는 조금 더 시도해볼까요?
+			2. 평균점수는 우수하지만, 완성도가 아쉽습니다. <br>다음번에는 조금 더 시도해볼까요?
 			</p>
 		</div>
 	</div>
-	
-	<br><br><br>
+	</div>
+	<br><br>
 
 	<div class="row">
 		<div class="col-md-6">
@@ -110,28 +93,66 @@
     		{% load static %} <img src="{% static 'img/past.jpeg' %}" class="img-responsive" width="100%" height="700px" >
     	</div>
     	<div class="col-md-6">
-    		{% load static %} <img src="{% static 'img/best.jpeg' %}" class="img-responsive" width="100%" height="700px" >
+    		{% load static %} <img src="{% static 'img/best.png' %}" class="img-responsive" width="100%" height="700px" >
     	</div>
 	</div>
-	
-</div>
-{% load static %} <link scr="{% static 'blog/main.css' %}">
-<script src="{% static 'mains.js' %}"></script> 
+
 <script>
+	
+var $j = jQuery.noConflict();
+$j.ajax({
+		//ajax request, so that website doesn't reload
+		url:"",//url it calls from urls.py
+		type:"get",//you want to get some data
+		success: function(response){//if request is successful, do this funtion, function 에게 response를 준다
+			var a = response.count/10*100;
+			var b = response.final_score;
+			drawpie(a, '.pie-chart1', '#ccc');
+			drawpie(b, '.pie-chart2', '#8b22ff');
+		}
+		});
+//console.log(a)
+//console.log(b)
+//$j.(window).ready(function(){
+	
+ // drawpie(10, '.pie-chart1', '#ccc');
+  //drawpie(90, '.pie-chart2', '#8b22ff');
+//});
+
+function drawpie(max, classname, colorname){
+  
+   var i=1;
+    var func1 = setInterval(function(){
+      if(i<max){
+          color1(i,classname,colorname);
+          i++;
+      } else{
+        clearInterval(func1);
+      }
+    },10);
+}
+
+function color1(i, classname,colorname){
+  $(classname).css({
+       "background":"conic-gradient("+colorname+" 0% "+i+"%, #ffffff "+i+"% 100%)"
+   });
+}	
+	
+
 var $j = jQuery.noConflict();
 var interval = setInterval(function(){
 	$j.ajax({
 		url:"",
 		type:"get",
 		success: function(response){
-			$("#a").text(response.a);
-			$("#b").text(response.b);
-			$("#c").text(response.c);
+			$("#time").text(response.time);
+			$("#final_score").text(response.final_score);
 			$("#max_angle").text(response.max_angle);
-			$("#e").text(response.e);
-			$("#f").text(response.f);
+			$("#count").text(response.count);
+			//$("#f").text(response.f);
 		},
 	});
-},1000);</script>
+},1000);	
+</script>
 
 {% endblock content %}

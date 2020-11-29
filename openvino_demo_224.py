@@ -111,7 +111,7 @@ def posenet2openpose(keypoints):
     return res_keypoints
     
 
-def main():
+def main(thres):
     
     #ankle_height = 0
     #counting = 0
@@ -122,6 +122,8 @@ def main():
     
     #Global varaible
     LEG_LABEL = np.load('./groundtruth.npy')
+    threshold = thres
+    print(threshold)
     
     #Initialize analzing parameter
     previous_pose_kpts = []
@@ -163,15 +165,11 @@ def main():
         #cap = cv2.VideoCapture(r"./ligt_oneleg_correct.mp4")
         
         #while True:
-        for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_port = True, splitter_port=2):
+        for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_port = True, splitter_port=1):
+            frame_start = time.time()
             pos_temp_data = []
-            sum = 0
             framenum +=1
             input_image = frame.array
-            #print(input_image.shape)
-            #input_image = cv2.resize(input_image, (720, 480))
-            #if framenum == 3:
-            #    exit()
             input_image, display_img, output_scale = _process_input(
                 input_image,scale_factor=args.scale_factor, output_stride=output_stride)
             print("display: ", display_img.shape)
@@ -180,6 +178,8 @@ def main():
             input_image = np.transpose(input_image, (0, 3, 1, 2))
             #print(input_image.shape)
             
+            #file_path = ("test%02d.png" %framenum)
+            #cv2.imwrite(file_path,display_img)
             res = exec_net.infer({'image': input_image})
             heatmaps_result = res['heatmap']
             offsets_result = res['offset_2/Add']
@@ -214,11 +214,10 @@ def main():
             previous_pose_kpts.append(select_keypoints)
             liftoneleg = LiftOneLeg(previous_pose_kpts)
             angle, leg_status = liftoneleg.check_leg_up_down()
-            print(framenum, "====> ", angle)
             
             if angle > max_angle:
                 max_angle = angle
-                #max_frame = cv2.imwrite("max_angle_frame.png")
+                max_frame = cv2.imwrite("./blog/static/img/best.png", display_img)
                     
             #Update status and count
             leg_status, completed_half, count_update, start_frame_update, end_frame_update= \
@@ -227,8 +226,7 @@ def main():
                 print("count : %d" %count_update)
                 score = test_per_frame(previous_pose_kpts[start_frame-total_len_frame:end_frame-total_len_frame], LEG_LABEL)
                 print("**************************")
-                print(start_frame, end_frame)
-                print(score)
+                print("score : %d" %score)
                 score_list.append(score)
                 f= open('score.txt', 'w')
                 f.write(str(int(score)))
@@ -243,43 +241,22 @@ def main():
             f.close()
             
             # write for feedback!!
-            if count == 2:
+            if count == 5:
                 exercise_time = time.time() - start
                 # write max angle
                 f = open('max_angle.txt', 'w')
-                f.write(str(max_angle))
+                f.write(str(int(max_angle)))
                 f.close() 
                 # write exercise time
                 f= open('time.txt', 'w')
-                f.write(str(exercise_time))
+                f.write(str(int(exercise_time)))
                 f.close()
                 # write score 
-                #f= open('final_score.txt')
-                #f.write(str(score_list.sum()/count))
-                #f.close()
-                #sys.exit(0)
-                return 0
-                
-                        
-            #Count, raiseup = counting_rightarm(keypoint_coords, raiseup)
-
-            #rightwrist = keypoint_coords[0, :, :][10][0]
-            #minwrist = min(rightwrist, old_minwrist)
-            #shoulder_min = keypoint_coords[0, :, :][6][0] + 30
-            #shoulder_max = keypoint_coords[0, :, :][6][0] + 15
-            #hip_min =  keypoint_coords[0, :, :][12][0] - 15
-            #hip_max =  keypoint_coords[0, :, :][12][0] + 15
-        
-            #if Count:
-            #    counting +=1
-            #    print("================================")
-            #    print(counting)
-            #    minwrist = 720
-            #    f = open('demofile.txt', 'w')
-            #    f.write(str(counting))
-            #    f.close()
-                #time.sleep(3)
-            #old_minwrist = minwrist
+                f= open('final_score.txt', 'w')
+                f.write(str(int(sum(score_list)/count)))
+                f.close()
+                sys.exit(0)
+                #return 0
 
             overlay_image = posenet.draw_skel_and_kp(
                 display_img, pose_scores, keypoint_scores, keypoint_coords,
@@ -288,13 +265,10 @@ def main():
             #cv2.putText(overlay_image, str(counting), (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 1)
             cv2.imshow('posenet', overlay_image)
             rawCapture.truncate(0)
-            #rawCapture.seek(0)
             frame_count += 1
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
-        
-#         print('Average FPS: ', frame_count / (time.time() - start))
+            print('Average FPS: ', (time.time() - frame_start))
 
 
 if __name__ == "__main__":
